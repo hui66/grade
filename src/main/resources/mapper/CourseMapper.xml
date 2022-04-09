@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.com.yan.mapper.CourseMapper">
+    <select id="getChoiceCourses" resultType="cn.com.yan.entity.Course">
+        select * from (select A.*,B.status from course A
+        left join userCourse B on A.id = B.course_id
+        where A.id not in (select course_id from userCourse where user_id = #{userId} and B.status = 2)) S
+        ORDER BY CONVERT(S.course_name using gbk)
+    </select>
+
+    <select id="getMyCourse" resultType="cn.com.yan.entity.Course">
+        select * from course A
+                          left join userCourse B on A.id = B.course_id
+        where B.status=0 and B.user_id = #{userId}
+    </select>
+
+    <select id="getMyGrade" resultType="cn.com.yan.entity.UserCourse">
+        select B.*,
+            A.course_name courseName,
+            A.course_code courseCode,
+            A.course_time courseTime,
+            A.theory_ability theoryAbility,
+            A.code_ability codeAbility,
+            A.practice_ability practiceAbility,
+            A.create_ability createAbility,
+            A.art_ability artAbility
+        from course A
+                          left join userCourse B on B.course_id = A.id
+        where B.status in ('1','2') and B.user_id = #{userId}
+    </select>
+
+    <insert id="addCourses">
+        insert userCourse (user_id,course_id) values
+            <foreach collection="idList" item="item" separator="," open="(" close=")">
+                #{userId},#{item}
+            </foreach>
+    </insert>
+
+    <insert id="cancelCourses">
+
+        <foreach collection="idList" item="item" >
+            delete from userCourse  where user_id = #{userId} and course_id = #{item}
+        </foreach>
+    </insert>
+
+</mapper>
